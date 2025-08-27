@@ -6,3 +6,6 @@ class CustomerData:
         self.age = int(age)
         self.cookie = cookie
         self.banner_id = int(banner_id)
+        
+    def __repr__(self):
+        return f"CustomerData(name={self.name}, age={self.age}, cookie={self.cookie}, banner_id={self.banner_id})"
