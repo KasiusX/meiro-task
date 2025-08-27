@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
@@ -15,4 +15,4 @@ COPY . /app
 EXPOSE 8000
 
 # Default command to run the server
-CMD ["uvicorn", "connector_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "connector_api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
