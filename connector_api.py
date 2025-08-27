@@ -13,4 +13,5 @@ async def upload_csv(file: UploadFile):
     content = await file.read()
     file_like = io.StringIO(content.decode("utf-8"))
     handle_csv_file(file_like)
+    # fix output
     return {"status": "processed"}
