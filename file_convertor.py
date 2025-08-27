@@ -10,7 +10,6 @@ def get_valid_customers(file):
     next(reader)
     valid_customers = []
     for row in reader:
-        logger.debug(f"Reading row: {row}")
         customer_data = CustomerData(row[0], row[1], row[2], row[3])
         if(is_customer_data_valid(customer_data)):
             valid_customers.append(customer_data)

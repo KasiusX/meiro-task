@@ -1,5 +1,5 @@
-import json
 import requests
+from exceptions.ShowAdsException import ShowAdsException
 
 from logging_config import getLogger
 
@@ -11,7 +11,7 @@ AUTH_BODY = {
     "ProjectKey" : "Meiro"
 }
 
-BATCH_SIZE = 1000
+BATCH_SIZE = 10
 logger = getLogger(__name__)
 
 
@@ -19,30 +19,58 @@ class ShowAdsFacade:
     def __init__(self):
         self.access_token = None
 
-    def handle_custommers_data(self, customers):
+    def handle_customers_data(self, customers):
         logger.info(f"Handeling customers of size: {len(customers)}") 
-        
         if self.access_token is None:
-            self.access_token = self.get_access_token()
-            logger.info(f"Fetched new access token {self.access_token}")
+            self.update_access_token()
             
+        batch_number = 0
         for i in range(0, len(customers), BATCH_SIZE):
             customers_batch = customers[i:i + BATCH_SIZE]
-            self.post_customers_data(customers_batch)
+            batch_number += 1
+            self.post_customers_data(customers_batch, batch_number)
         
-    def post_customers_data(self, customers):
-        logger.info(f"Handeling batch of size: {len(customers)}")
-        
+    def post_customers_data(self, customers, batch_number, try_count=0):
+        logger.info(f"Sending batch {batch_number} of size: {len(customers)}")
         headers = self.create_authorization_header()
         body = self.create_show_bulk_body(customers)
 
         response = requests.post(SHOW_BULK_URL, headers=headers, json=body)
-        logger.info(f"Batch ended with: {response.status_code} and response: {response.content}")
+        
+        match response.status_code:
+            case 200:
+                logger.info(f"Batch {batch_number} sent successfully")
+                return
+            case 400:
+                logger.error(f"Failed to send batch {batch_number}, bad request: {response.content}")
+            case 401:
+                if(try_count >= 3):
+                    raise ShowAdsException(f"Failed to send batch {batch_number} after 3 retries, access token issue")
+                logger.info("Access token expired, fetching a new one")
+                self.update_access_token()
+                self.post_customers_data(customers, 1+ try_count)
+            case 500:
+                logger.error(f"Failed to send batch {batch_number}, server error: {response.content}")
+            case _:
+                logger.error(f"Failed to send batch {batch_number}, unexpected status code: {response.status_code} and error: {response.content}")
+        
             
-    def get_access_token(self):
+    def update_access_token(self):
         response = requests.post(AUTH_URL, json=AUTH_BODY)
-        if response.status_code == 200:
-            return response.json().get("AccessToken")
+
+        match response.status_code:
+            case 200:
+                self.access_token = response.json().get("AccessToken")
+                logger.info(f"Fetched new access token {self.access_token}")
+                return
+            case 400:
+                logger.error(f"Failed to retreive access token, bad request: {response.content}")
+            case 500:
+                logger.error(f"Failed to retreive access token, server error: {response.content}")
+            case _:
+                logger.error(f"Failed to retreive access token, unexpected status code: {response.status_code} and error: {response.content}")
+        raise ShowAdsException("Failed to retreive access token")
+
         
     def create_show_bulk_body(self, customers):
         body = {

@@ -20,5 +20,5 @@ def getLogger(name:str):
 
     logger.addHandler(stdout_handler)
     logger.addHandler(stderr_handler)
-
+    
     return logger
