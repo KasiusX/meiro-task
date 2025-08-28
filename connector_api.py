@@ -17,7 +17,7 @@ async def upload_csv(file: UploadFile = File(...)) -> JSONResponse:
     
     if not file.filename.lower().endswith('.csv'):
         raise HTTPException(status_code=400, detail="Uploaded file is not a CSV file.")
-    
+
     content = await file.read()
     text_stream = io.StringIO(content.decode("utf-8"))
 
