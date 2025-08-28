@@ -16,6 +16,7 @@ async def upload_csv(file: UploadFile = File(...)) -> JSONResponse:
     logger.info(f"API handling file: {file.filename}")
     
     if not file.filename.lower().endswith('.csv'):
+        logger.error("Uploaded file is not a CSV file.")
         raise HTTPException(status_code=400, detail="Uploaded file is not a CSV file.")
 
     content = await file.read()
@@ -24,7 +25,9 @@ async def upload_csv(file: UploadFile = File(...)) -> JSONResponse:
     try:
         handle_csv_file(text_stream)
     except ConnectorErrorException as e:
+        logger.error(f"Connector failed with error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     except ConnectorInvalidInputException as e:
+        logger.error(f"Connector failed with eror: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     return JSONResponse(status_code=200, content={"message":"Data send successfully"})

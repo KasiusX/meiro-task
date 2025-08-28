@@ -16,7 +16,6 @@ def save_failed_batch(batch: dict, batch_number: int) -> None:
     filename = _get_filename(batch_number)
     file_path = os.path.join(directory, filename)
     
-    
     with open(file_path, "a") as f:
         f.write(json.dumps(batch) + "\n")
 

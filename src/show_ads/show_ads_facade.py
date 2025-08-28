@@ -13,7 +13,7 @@ class ShowAdsFacade:
     def __init__(self):
         self.access_token = None
         
-    def load_config(self):
+    def _load_config(self):
         config = get_config()
         self.number_of_retries = config.getint("show_ads","retries")
         self.auth_url = config.get("show_ads","auth_url")
@@ -21,14 +21,14 @@ class ShowAdsFacade:
         self.batch_size = config.getint("show_ads","batch_size")
         self.wait_time_seconds = config.getint("show_ads","wait_time_seconds")
         self.project_key = config.get("show_ads","project_key")
-        logger.info("Successfully loaded show ads config")
+        logger.info("Successfully loaded config file")
 
     def handle_customers_data(self, customers: list[CustomerData]) -> None:
-        logger.info(f"Handeling customers of size: {len(customers)}") 
+        logger.info(f"Handling customers data of size: {len(customers)}") 
 
-        self.load_config()
+        self._load_config()
         if self.access_token is None:
-            self.update_access_token()
+            self._update_access_token()
 
         batch_number = 0
         failed_batches = []
@@ -36,19 +36,19 @@ class ShowAdsFacade:
             customers_batch = customers[i:i + self.batch_size]
             batch_number += 1
             try:
-                self.post_customers_data(customers_batch, batch_number)
+                self._post_customers_data(customers_batch, batch_number)
             except ShowAdsException as e:
                 logger.error(f"Failed to send batch {batch_number} with error: {e}")
                 failed_batches.append(batch_number)
-                save_failed_batch(self.create_show_bulk_body(customers_batch), batch_number)
+                save_failed_batch(self._create_show_bulk_body(customers_batch), batch_number)
 
         if len(failed_batches) != 0:
             raise ShowAdsException(f"Failed to send batches: {failed_batches} out of {batch_number} batches")
 
-    def post_customers_data(self, customers: list[CustomerData], batch_number: int, try_count: int = 1) -> None:
+    def _post_customers_data(self, customers: list[CustomerData], batch_number: int, try_count: int = 1) -> None:
         logger.info(f"Sending batch {batch_number} of size: {len(customers)}, try: {try_count}")
-        headers = self.create_authorization_header()
-        body = self.create_show_bulk_body(customers)
+        headers = self._create_authorization_header()
+        body = self._create_show_bulk_body(customers)
 
         response = requests.post(self.show_bulk_url, headers=headers, json=body)
 
@@ -60,26 +60,27 @@ class ShowAdsFacade:
                 raise ShowAdsException(f"Bad request: {response.content}")
             case 401:
                 logger.info("Failed to authenticate, fetching a new access token and retrying")
-                self.update_access_token()
-                self.retry_post_customers_data(customers, batch_number, try_count)
+                self._update_access_token()
+                self._retry_post_customers_data(customers, batch_number, try_count)
             case 429:
                 logger.info(f"Rate limit exceeded, waiting {self.wait_time_seconds} second and retrying")
-                self.retry_post_customers_data(customers, batch_number, try_count, self.wait_time_seconds)
+                self._retry_post_customers_data(customers, batch_number, try_count, self.wait_time_seconds)
             case 500:
                 logger.warning(f"Failed to send batch {batch_number}, server error: {response.content}, waiting {self.wait_time_seconds} second and retrying")
-                self.retry_post_customers_data(customers, batch_number, try_count, self.wait_time_seconds)
+                self._retry_post_customers_data(customers, batch_number, try_count, self.wait_time_seconds)
             case _:
                 raise ShowAdsException(f"Unexpected error, status code: {response.status_code} and error: {response.content}")
         
-    def retry_post_customers_data(self, customers: list[CustomerData], batch_number: int, try_count: int, wait_time_seconds: int = 0) -> None:
+    def _retry_post_customers_data(self, customers: list[CustomerData], batch_number: int, try_count: int, wait_time_seconds: int = 0) -> None:
         if(try_count > self.number_of_retries):
             raise ShowAdsException(f"Failed to send batch {batch_number} after {self.number_of_retries} retries")
         time.sleep(wait_time_seconds)
-        self.post_customers_data(customers, batch_number, 1 + try_count)
+        self._post_customers_data(customers, batch_number, 1 + try_count)
 
 
-    def update_access_token(self, try_count: int=1) -> None:
-        response = requests.post(self.auth_url, json=self.create_auth_body())
+    def _update_access_token(self, try_count: int=1) -> None:
+        logger.info(f"Fetching new access token, try: {try_count}")
+        response = requests.post(self.auth_url, json=self._create_auth_body())
 
         match response.status_code:
             case 200:
@@ -90,21 +91,21 @@ class ShowAdsFacade:
             case 429:
                 logger.info(f"Rate limit exceeded, waiting {self.wait_time_seconds} second and retrying")
                 time.sleep(self.wait_time_seconds)
-                self.retry_update_access_token(try_count)
+                self._retry_update_access_token(try_count)
             case 500:
                 logger.error(f"Failed to retreive access token, server error: {response.content}, waiting {self.wait_time_seconds} second and retrying")
                 time.sleep(self.wait_time_seconds)
-                self.retry_update_access_token(try_count)
+                self._retry_update_access_token(try_count)
             case _:
                 ShowAdsException(f"Failed to retreive access token, unexpected status code: {response.status_code} and error: {response.content}")
     
-    def retry_update_access_token(self, try_count: int) -> None:
+    def _retry_update_access_token(self, try_count: int) -> None:
         if(try_count > self.number_of_retries):
             raise ShowAdsException(f"Failed to retreive access token after {self.number_of_retries} retries")
-        self.update_access_token(1 + try_count)
+        self._update_access_token(1 + try_count)
 
         
-    def create_show_bulk_body(self, customers: list[CustomerData]) -> dict:
+    def _create_show_bulk_body(self, customers: list[CustomerData]) -> dict:
         body = {
             "Data": [
                 {
@@ -116,12 +117,12 @@ class ShowAdsFacade:
         }
         return body
     
-    def create_authorization_header(self) -> dict:
+    def _create_authorization_header(self) -> dict:
         return {
             "Authorization" : f"Bearer {self.access_token}"
         }
         
-    def create_auth_body(self) -> dict:
+    def _create_auth_body(self) -> dict:
         return {
                 "ProjectKey" : self.project_key
         }
