@@ -1,6 +1,7 @@
 import time
 import requests
 import logging
+from customer_data import CustomerData
 from exceptions.ShowAdsException import ShowAdsException
 
 BASE_URL = "https://golang-assignment-968918017632.europe-west3.run.app"
@@ -19,7 +20,7 @@ class ShowAdsFacade:
     def __init__(self):
         self.access_token = None
 
-    def handle_customers_data(self, customers):
+    def handle_customers_data(self, customers: list[CustomerData]) -> None:
         logger.info(f"Handeling customers of size: {len(customers)}") 
         if self.access_token is None:
             self.update_access_token()
@@ -38,7 +39,7 @@ class ShowAdsFacade:
         if len(failed_batches) != 0:
             raise ShowAdsException(f"Failed to send batches: {failed_batches}")
 
-    def post_customers_data(self, customers, batch_number, try_count=1):
+    def post_customers_data(self, customers: list[CustomerData], batch_number: int, try_count: int = 1) -> None:
         logger.info(f"Sending batch {batch_number} of size: {len(customers)}, try: {try_count}")
         headers = self.create_authorization_header()
         body = self.create_show_bulk_body(customers)
@@ -72,7 +73,7 @@ class ShowAdsFacade:
                 logger.error(f"Failed to send batch {batch_number}, unexpected status code: {response.status_code} and error: {response.content}")
 
 
-    def update_access_token(self, try_count=1):
+    def update_access_token(self, try_count: int=1) -> None:
         response = requests.post(AUTH_URL, json=AUTH_BODY)
 
         match response.status_code:
@@ -99,7 +100,7 @@ class ShowAdsFacade:
         raise ShowAdsException("Failed to retreive access token")
 
         
-    def create_show_bulk_body(self, customers):
+    def create_show_bulk_body(self, customers: list[CustomerData]) -> dict:
         body = {
             "Data": [
                 {
@@ -111,7 +112,7 @@ class ShowAdsFacade:
         }
         return body
     
-    def create_authorization_header(self):
+    def create_authorization_header(self) -> dict:
         return {
             "Authorization" : f"Bearer {self.access_token}"
         }

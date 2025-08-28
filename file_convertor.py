@@ -1,3 +1,4 @@
+import io
 import csv
 import logging
 from customer_data import CustomerData
@@ -5,7 +6,7 @@ from customer_data_validator import is_customer_data_valid
 
 logger = logging.getLogger(__name__)
 
-def get_valid_customers(file):
+def get_valid_customers(file: io.StringIO) -> list[CustomerData]:
     reader = csv.DictReader(file)
     valid_customers = []
     for row in reader:
