@@ -87,9 +87,8 @@ class ShowAdsFacade:
             case 200:
                 self.access_token = response.json().get("AccessToken")
                 logger.info(f"Fetched new access token {self.access_token}")
-                return
             case 400:
-                logger.error(f"Failed to retreive access token, bad request: {response.content}")
+                raise ShowAdsException(f"Failed to retreive access token, bad request: {response.content}")
             case 429:
                 logger.info(f"Rate limit exceeded, waiting {self.wait_time_seconds} second and retrying")
                 time.sleep(self.wait_time_seconds)
@@ -99,8 +98,7 @@ class ShowAdsFacade:
                 time.sleep(self.wait_time_seconds)
                 self.retry_update_access_token(try_count)
             case _:
-                logger.error(f"Failed to retreive access token, unexpected status code: {response.status_code} and error: {response.content}")
-        raise ShowAdsException("Failed to retreive access token")
+                ShowAdsException(f"Failed to retreive access token, unexpected status code: {response.status_code} and error: {response.content}")
     
     def retry_update_access_token(self, try_count: int) -> None:
         if(try_count > self.number_of_retries):
