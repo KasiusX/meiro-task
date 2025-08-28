@@ -1,11 +1,24 @@
-from configparser import ConfigParser
 import re
-from .customer_data import CustomerData
+import logging
+
+from configparser import ConfigParser
 from ..config_reader import get_config
+from .customer_data import CustomerData
+
+logger = logging.getLogger(__name__)
 
 def is_customer_data_valid(customer_data: CustomerData) -> bool:
     config = get_config()
-    return _is_age_valid(customer_data.age, config) and _is_name_valid(customer_data.name) and _is_banner_id_valid(customer_data.banner_id, config)
+    if not _is_age_valid(customer_data.age, config):
+        logger.warning(f"Customer age was invalid: {customer_data.age}")
+        return False
+    if not _is_name_valid(customer_data.name):
+        logger.warning(f"Customer name was invalid: {customer_data.name}")
+        return False
+    if not _is_banner_id_valid(customer_data.banner_id, config):
+        logger.warning(f"Customer banner_id was invalid: {customer_data.banner_id}")
+        return False
+    return True
 
 def _is_name_valid(name: str) -> bool:
     return re.fullmatch(r"[A-Za-z0-9 ]+", name)
