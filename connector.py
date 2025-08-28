@@ -1,5 +1,6 @@
 import io
 import logging
+
 from show_ads_facade import ShowAdsFacade
 from file_convertor import get_valid_customers
 from exceptions.ShowAdsException import ShowAdsException
