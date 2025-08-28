@@ -24,7 +24,7 @@ class ShowAdsFacade:
         logger.info(f"Handeling customers of size: {len(customers)}") 
         if self.access_token is None:
             self.update_access_token()
-            
+
         batch_number = 0
         failed_batches = []
         for i in range(0, len(customers), BATCH_SIZE):
@@ -35,17 +35,17 @@ class ShowAdsFacade:
             except ShowAdsException as e:
                 logger.error(f"Failed to send batch {batch_number} with error: {e}")
                 failed_batches.append(batch_number)
-        
+
         if len(failed_batches) != 0:
             raise ShowAdsException(f"Failed to send batches: {failed_batches}")
-        
+
     def post_customers_data(self, customers, batch_number, try_count=1):
         logger.info(f"Sending batch {batch_number} of size: {len(customers)}, try: {try_count}")
         headers = self.create_authorization_header()
         body = self.create_show_bulk_body(customers)
- 
+
         response = requests.post(SHOW_BULK_URL, headers=headers, json=body)
-        
+
         match response.status_code:
             case 200:
                 logger.info(f"Batch {batch_number} sent successfully")
@@ -71,8 +71,8 @@ class ShowAdsFacade:
                 self.post_customers_data(customers, batch_number, 1 + try_count)
             case _:
                 logger.error(f"Failed to send batch {batch_number}, unexpected status code: {response.status_code} and error: {response.content}")
-        
-            
+
+
     def update_access_token(self, try_count=1):
         response = requests.post(AUTH_URL, json=AUTH_BODY)
 

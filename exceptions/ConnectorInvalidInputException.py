@@ -1,0 +1,2 @@
+class ConnectorInvalidInputException(Exception):
+    pass
