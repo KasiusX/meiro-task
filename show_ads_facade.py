@@ -5,6 +5,7 @@ import requests
 from customer_data import CustomerData
 from connector_config import get_config
 from exceptions.ShowAdsException import ShowAdsException
+from failed_batches import save_failed_batch
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,7 @@ class ShowAdsFacade:
             except ShowAdsException as e:
                 logger.error(f"Failed to send batch {batch_number} with error: {e}")
                 failed_batches.append(batch_number)
+                save_failed_batch(self.create_show_bulk_body(customers_batch))
 
         if len(failed_batches) != 0:
             raise ShowAdsException(f"Failed to send batches: {failed_batches} out of {batch_number} batches")
