@@ -15,14 +15,19 @@ logger = logging.getLogger(__name__)
 class ShowAdsFacade:
     def __init__(self):
         self.access_token = None
+        
+    def load_config(self):
         config = get_config()
         self.number_of_retries = config.getint("show_ads","retries")
         self.auth_url = config.get("show_ads","auth_url")
         self.show_bulk_url = config.get("show_ads","show_bulk_url")
         self.batch_size = config.getint("show_ads","batch_size")
+        logger.info("Successfully loaded show ads config")
 
     def handle_customers_data(self, customers: list[CustomerData]) -> None:
         logger.info(f"Handeling customers of size: {len(customers)}") 
+
+        self.load_config()
         if self.access_token is None:
             self.update_access_token()
 

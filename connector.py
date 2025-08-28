@@ -7,7 +7,7 @@ from exceptions.ConnectorErrorException import ConnectorErrorException
 from exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
 
 
-
+show_ads_facade = ShowAdsFacade()
 logger = logging.getLogger(__name__) 
 
 def handle_csv_file(csv_file: io.StringIO) -> None:
@@ -17,7 +17,6 @@ def handle_csv_file(csv_file: io.StringIO) -> None:
         logger.error("No valid customers data found")
         raise ConnectorInvalidInputException("No valid customers data found")
 
-    show_ads_facade = ShowAdsFacade()
     try:
         show_ads_facade.handle_customers_data(valid_customers)
     except ShowAdsException as e:
