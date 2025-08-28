@@ -6,11 +6,10 @@ from customer_data_validator import is_customer_data_valid
 logger = getLogger(__name__)
 
 def get_valid_customers(file):
-    reader = csv.reader(file)
-    next(reader)
+    reader = csv.DictReader(file)
     valid_customers = []
     for row in reader:
-        customer_data = CustomerData(row[0], row[1], row[2], row[3])
+        customer_data = CustomerData(row["Name"], row["Age"], row["Cookie"], row["Banner_id"]) 
         if(is_customer_data_valid(customer_data)):
             valid_customers.append(customer_data)
         else:
