@@ -12,7 +12,7 @@ AUTH_BODY = {
     "ProjectKey" : "Meiro"
 }
 
-BATCH_SIZE = 10
+BATCH_SIZE = 1000
 logger = getLogger(__name__)
 
 
@@ -26,10 +26,18 @@ class ShowAdsFacade:
             self.update_access_token()
             
         batch_number = 0
+        failed_batches = []
         for i in range(0, len(customers), BATCH_SIZE):
             customers_batch = customers[i:i + BATCH_SIZE]
             batch_number += 1
-            self.post_customers_data(customers_batch, batch_number)
+            try:
+                self.post_customers_data(customers_batch, batch_number)
+            except ShowAdsException as e:
+                logger.error(f"Failed to send batch {batch_number} with error: {e}")
+                failed_batches.append(batch_number)
+        
+        if len(failed_batches) != 0:
+            raise ShowAdsException(f"Failed to send batches: {failed_batches}")
         
     def post_customers_data(self, customers, batch_number, try_count=1):
         logger.info(f"Sending batch {batch_number} of size: {len(customers)}, try: {try_count}")
@@ -41,7 +49,6 @@ class ShowAdsFacade:
         match response.status_code:
             case 200:
                 logger.info(f"Batch {batch_number} sent successfully")
-                return
             case 400:
                 logger.error(f"Failed to send batch {batch_number}, bad request: {response.content}")
             case 401:
