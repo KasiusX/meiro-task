@@ -2,5 +2,5 @@ import configparser
 
 def get_config() -> configparser.ConfigParser:
     config = configparser.ConfigParser()
-    config.read('connector_config.ini')
+    config.read('config.ini')
     return config
