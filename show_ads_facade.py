@@ -1,3 +1,4 @@
+import time
 import requests
 from exceptions.ShowAdsException import ShowAdsException
 
@@ -30,11 +31,11 @@ class ShowAdsFacade:
             batch_number += 1
             self.post_customers_data(customers_batch, batch_number)
         
-    def post_customers_data(self, customers, batch_number, try_count=0):
-        logger.info(f"Sending batch {batch_number} of size: {len(customers)}")
+    def post_customers_data(self, customers, batch_number, try_count=1):
+        logger.info(f"Sending batch {batch_number} of size: {len(customers)}, try: {try_count}")
         headers = self.create_authorization_header()
         body = self.create_show_bulk_body(customers)
-
+ 
         response = requests.post(SHOW_BULK_URL, headers=headers, json=body)
         
         match response.status_code:
@@ -44,18 +45,28 @@ class ShowAdsFacade:
             case 400:
                 logger.error(f"Failed to send batch {batch_number}, bad request: {response.content}")
             case 401:
-                if(try_count >= 3):
+                if(try_count > 3):
                     raise ShowAdsException(f"Failed to send batch {batch_number} after 3 retries, access token issue")
                 logger.info("Access token expired, fetching a new one")
                 self.update_access_token()
-                self.post_customers_data(customers, 1+ try_count)
+                self.post_customers_data(customers, batch_number, 1 + try_count)
+            case 429:
+                if(try_count >= 3):
+                    raise ShowAdsException(f"Failed to send batch {batch_number} after 3 retries, rate limit issue")
+                logger.info("Rate limit exceeded, waiting 1 second and retrying")
+                time.sleep(1)
+                self.post_customers_data(customers, batch_number, 1 + try_count)
             case 500:
-                logger.error(f"Failed to send batch {batch_number}, server error: {response.content}")
+                if(try_count >= 3):
+                    raise ShowAdsException(f"Failed to send batch {batch_number} after 3 retries, server issue")
+                logger.warning(f"Failed to send batch {batch_number}, server error: {response.content}, waiting 1 second and retrying")
+                time.sleep(1)
+                self.post_customers_data(customers, batch_number, 1 + try_count)
             case _:
                 logger.error(f"Failed to send batch {batch_number}, unexpected status code: {response.status_code} and error: {response.content}")
         
             
-    def update_access_token(self):
+    def update_access_token(self, try_count=1):
         response = requests.post(AUTH_URL, json=AUTH_BODY)
 
         match response.status_code:
@@ -65,8 +76,18 @@ class ShowAdsFacade:
                 return
             case 400:
                 logger.error(f"Failed to retreive access token, bad request: {response.content}")
+            case 429:
+                if(try_count >= 3):
+                    raise ShowAdsException(f"Failed to retreive access token after 3 retries, rate limit issue")
+                logger.info("Rate limit exceeded, waiting 1 second and retrying")
+                self.update_access_token(1 + try_count)
             case 500:
                 logger.error(f"Failed to retreive access token, server error: {response.content}")
+                if(try_count >= 3):
+                    raise ShowAdsException(f"Failed to retreive access token after 3 retries, server issue")
+                logger.warning(f"Failed to retreive, server error: {response.content}, waiting 1 second and retrying")
+                time.sleep(1)
+                self.update_access_token(1 + try_count)
             case _:
                 logger.error(f"Failed to retreive access token, unexpected status code: {response.status_code} and error: {response.content}")
         raise ShowAdsException("Failed to retreive access token")
