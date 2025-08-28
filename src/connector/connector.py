@@ -1,12 +1,11 @@
 import io
 import logging
 
-from show_ads_facade import ShowAdsFacade
-from file_convertor import get_valid_customers
-from exceptions.ShowAdsException import ShowAdsException
-from exceptions.ConnectorErrorException import ConnectorErrorException
-from exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
-
+from .file_convertor import get_valid_customers
+from ..show_ads.show_ads_facade import ShowAdsFacade
+from ..exceptions.ShowAdsException import ShowAdsException
+from ..exceptions.ConnectorErrorException import ConnectorErrorException
+from ..exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
 
 show_ads_facade = ShowAdsFacade()
 logger = logging.getLogger(__name__) 

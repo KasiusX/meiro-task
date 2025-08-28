@@ -9,4 +9,4 @@ COPY . /app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "connector_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.connector.connector_api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,8 +1,9 @@
 import io
 import csv
 import logging
-from customer_data import CustomerData
-from customer_data_validator import is_customer_data_valid
+
+from ..model.customer_data import CustomerData
+from ..model.customer_data_validator import is_customer_data_valid
 
 logger = logging.getLogger(__name__)
 

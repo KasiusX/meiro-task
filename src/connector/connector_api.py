@@ -1,10 +1,10 @@
 import io
 import logging
-from connector import handle_csv_file
+from .connector import handle_csv_file
+from ..exceptions.ConnectorErrorException import ConnectorErrorException
+from ..exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from exceptions.ConnectorErrorException import ConnectorErrorException
-from exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
 
 app = FastAPI()
 logging.config.fileConfig('logging.ini', disable_existing_loggers=False)

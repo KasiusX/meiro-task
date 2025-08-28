@@ -2,10 +2,10 @@ import time
 import logging
 import requests
 
-from customer_data import CustomerData
-from connector_config import get_config
-from exceptions.ShowAdsException import ShowAdsException
-from failed_batches import save_failed_batch
+from ..model.customer_data import CustomerData
+from ..config_reader import get_config
+from ..exceptions.ShowAdsException import ShowAdsException
+from .failed_batches import save_failed_batch
 
 logger = logging.getLogger(__name__)
 
