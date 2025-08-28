@@ -1,9 +1,9 @@
 import csv
-from logging_config import getLogger
+import logging
 from customer_data import CustomerData
 from customer_data_validator import is_customer_data_valid
 
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 def get_valid_customers(file):
     reader = csv.DictReader(file)

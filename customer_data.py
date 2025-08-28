@@ -1,10 +1,8 @@
-from uuid import UUID
-
 class CustomerData:
-    def __init__(self, name:str, age:int, cookie:UUID, banner_id:int):
-        self.name = name
+    def __init__(self, name:str, age:int, cookie:str, banner_id:int):
+        self.name = str(name)
         self.age = int(age)
-        self.cookie = cookie
+        self.cookie = str(cookie)
         self.banner_id = int(banner_id)
         
     def __repr__(self):

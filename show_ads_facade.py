@@ -1,8 +1,7 @@
 import time
 import requests
+import logging
 from exceptions.ShowAdsException import ShowAdsException
-
-from logging_config import getLogger
 
 BASE_URL = "https://golang-assignment-968918017632.europe-west3.run.app"
 AUTH_URL = f"{BASE_URL}/auth"
@@ -13,7 +12,7 @@ AUTH_BODY = {
 }
 
 BATCH_SIZE = 1000
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class ShowAdsFacade:

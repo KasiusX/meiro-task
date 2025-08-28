@@ -1,5 +1,5 @@
 import io
-from logging_config import getLogger
+import logging
 from connector import handle_csv_file
 from fastapi.responses import JSONResponse
 from fastapi import FastAPI, UploadFile, HTTPException
@@ -7,11 +7,13 @@ from exceptions.ConnectorErrorException import ConnectorErrorException
 from exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
 
 app = FastAPI()
-logger = getLogger(__name__)
+logging.config.fileConfig('logging.ini', disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+
 
 @app.post("/upload-csv")
 async def upload_csv(file: UploadFile):
-    logger.info(f"API handeling file: {file.filename}")
+    logger.info(f"API handling file: {file.filename}")
     
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Uploaded file is not a CSV file.")
