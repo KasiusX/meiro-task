@@ -40,7 +40,7 @@ class ShowAdsFacade:
             except ShowAdsException as e:
                 logger.error(f"Failed to send batch {batch_number} with error: {e}")
                 failed_batches.append(batch_number)
-                save_failed_batch(self.create_show_bulk_body(customers_batch))
+                save_failed_batch(self.create_show_bulk_body(customers_batch), batch_number)
 
         if len(failed_batches) != 0:
             raise ShowAdsException(f"Failed to send batches: {failed_batches} out of {batch_number} batches")
@@ -124,4 +124,4 @@ class ShowAdsFacade:
     def create_auth_body(self) -> dict:
         return {
                 "ProjectKey" : self.project_key
-            }
+        }
