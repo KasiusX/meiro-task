@@ -1,4 +1,3 @@
-import logging
 import re
 from customer_data import CustomerData
 from connector_config import get_config
