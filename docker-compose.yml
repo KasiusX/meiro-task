@@ -1,0 +1,11 @@
+services:
+  merio-connector:
+    build: .
+    ports:
+      - "8000:8000"
+    container_name: meiro-connector
+    volumes:
+      - failed_batches:/app/failed_batches
+
+volumes:
+  failed_batches:
