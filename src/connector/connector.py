@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def handle_csv_file(csv_file: io.StringIO) -> None:
     logger.info(f"Connector handling CSV file: Testing file")
+    
     valid_customers = get_valid_customers(csv_file)
     if len(valid_customers) == 0:
         logger.error("No valid customers data found")
