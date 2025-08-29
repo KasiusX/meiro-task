@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from src.connector.connector_api import app
 
@@ -26,9 +27,11 @@ def _test_upload(file_name: str, expected_status: int, expected_body: dict):
     response = _upload_file(file_name)
     assert response.status_code == expected_status
     assert response.json() == expected_body
+    
+# should test 500
 
 def _upload_file(file_name: str):
     file_path = os.path.join(os.path.dirname(__file__), "..", "test_files", file_name)
-    with open(file_path, "rb") as f:
-        file_data = f.read()
-        return client.post("/upload-csv", files={"file": (file_name, file_data, "text/csv")})
+    with patch("src.connector.connector.show_ads_facade.handle_customers_data", return_value=None):
+        with open(file_path, "rb") as f:
+            return client.post("/upload-csv", files={"file": (file_name, f, "text/csv")})
