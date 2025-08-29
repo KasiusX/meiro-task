@@ -23,7 +23,7 @@ def get_valid_customers(file: io.StringIO) -> list[CustomerData]:
             logger.error(f"Failed to convert customer row {row}, has invalid data types: {e}")
             continue
             
-        if(customer_data_validator.is_customer_data_valid(customer_data)):
+        if customer_data_validator.is_customer_data_valid(customer_data):
             valid_customers.append(customer_data)
         else:
             logger.warning(f"Customer data was invalid: {customer_data}")

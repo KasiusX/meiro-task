@@ -1,5 +1,6 @@
 import io
-import logging
+import logging.config
+
 from .connector import handle_csv_file
 from ..exceptions.ConnectorErrorException import ConnectorErrorException
 from ..exceptions.ConnectorInvalidInputException import ConnectorInvalidInputException
