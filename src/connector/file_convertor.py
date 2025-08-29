@@ -13,7 +13,16 @@ def get_valid_customers(file: io.StringIO) -> list[CustomerData]:
     valid_customers = []
     customer_data_validator = CustomerDataValidator()
     for row in reader:
-        customer_data = CustomerData(row["Name"], row["Age"], row["Cookie"], row["Banner_id"]) 
+        customer_data = None
+        try:
+            customer_data = CustomerData(row["Name"], row["Age"], row["Cookie"], row["Banner_id"]) 
+        except KeyError as e:
+            logger.error(f"CSV file is missing required columns: {e}")
+            return []
+        except (TypeError, ValueError) as e:
+            logger.error(f"Failed to convert customer row {row}, has invalid data types: {e}")
+            continue
+            
         if(customer_data_validator.is_customer_data_valid(customer_data)):
             valid_customers.append(customer_data)
         else:
